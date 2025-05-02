@@ -63,7 +63,7 @@ export const signUp = async (params: AuthCredentials) => {
     const hashedPassword = await hash(password, 10)
 
 
-    try {
+    // try {
         await db.insert(usersTable).values({
             fullName,
             email,
@@ -83,8 +83,8 @@ export const signUp = async (params: AuthCredentials) => {
         await signInWithCredentials({ email, password });
         return { success: true };
 
-    } catch (error) {
-        console.log(error, "Signup error");
-        return { success: false, error: "Signup error" };
-    }
+    // } catch (error) {
+    //     console.log(error, "Signup error");
+    //     return { success: false, error: "Signup error" };
+    // }
 }
