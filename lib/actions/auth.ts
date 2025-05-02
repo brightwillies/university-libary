@@ -9,6 +9,9 @@ import { headers } from "next/headers";
 
 import { redirect } from "next/navigation";
 import ratelimited from "@/ratelimit";
+import { workflowClient } from "../workflow";
+
+import { config } from '@/lib/config';
 
 export const signInWithCredentials = async (
     params: Pick<AuthCredentials, "email" | "password">,
@@ -16,7 +19,7 @@ export const signInWithCredentials = async (
     const { email, password } = params;
 
     const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
-     const { success } = await ratelimited.limit(ip);
+    const { success } = await ratelimited.limit(ip);
 
     if (!success) return redirect("/too-fast");
 
@@ -45,10 +48,10 @@ export const signUp = async (params: AuthCredentials) => {
     const { fullName, email, universityId, password, universityCard } = params;
 
 
- const ip = (await headers()).get('x-forwarded-for') || "127.0.0.1";
- const {success} = await ratelimited.limit(ip)
+    const ip = (await headers()).get('x-forwarded-for') || "127.0.0.1";
+    const { success } = await ratelimited.limit(ip)
 
- if(!success) return redirect('/too-fast');
+    if (!success) return redirect('/too-fast');
 
     const existingUser = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
 
@@ -68,6 +71,14 @@ export const signUp = async (params: AuthCredentials) => {
             password: hashedPassword,
             universityCard
         });
+
+        await workflowClient.trigger({
+            url: `${config.env.prodApiEndpoint}/api/workflow/onboarding`,
+            body: {
+                email,
+                fullName
+            }
+        })
 
         await signInWithCredentials({ email, password });
         return { success: true };
