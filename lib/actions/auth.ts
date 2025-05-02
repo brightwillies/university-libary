@@ -11,7 +11,7 @@ import { redirect } from "next/navigation";
 import ratelimited from "@/ratelimit";
 import { workflowClient } from "../workflow";
 
-import { config } from '@/lib/config';
+import  config  from '@/lib/config';
 
 export const signInWithCredentials = async (
     params: Pick<AuthCredentials, "email" | "password">,
