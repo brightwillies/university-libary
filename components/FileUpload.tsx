@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import lConfig from "@/lib/config";
+import config from "@/lib/config";
 
 interface FileUploadProps {
-  type: "image" | "file";
+  type: "image" | "file" | "video";
   accept: string;
   placeholder: string;
   folder: string;
@@ -46,7 +46,7 @@ const FileUpload = ({
   const authenticator = async () => {
     try {
   
-      const response = await fetch(`${lConfig.apiEndPoint}/auth/imagekit`);
+      const response = await fetch(`${config.env.apiEndpoint}/auth/imagekit`);
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to authenticate");
@@ -71,7 +71,6 @@ const FileUpload = ({
         const previewUrl = URL.createObjectURL(file);
         setLocalPreview(previewUrl);
       }
-      
       // Start upload automatically when file is selected
       handleUpload(file);
     }

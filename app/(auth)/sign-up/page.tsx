@@ -1,10 +1,11 @@
-"use client";
-import Authform from '@/components/Authform'
+'use client';
 import { signUpSchema } from "@/lib/validations";
 import { signUp } from '@/lib/actions/auth';
+import Authform from "@/components/Authform";
 
 const page = () => 
      (
+       
         <Authform type="SIGN_UP"
             schema={signUpSchema}
             defaultValues={{

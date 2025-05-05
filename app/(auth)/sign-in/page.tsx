@@ -1,9 +1,7 @@
- "use client";
- import React from 'react'
-import Authform from '@/components/Authform'
+'use client';
 import {signInSchema} from "@/lib/validations";
 import { signInWithCredentials } from '@/lib/actions/auth';
-
+import Authform from "@/components/Authform";
 const page = () => 
      (
         <Authform type="SIGN_IN"

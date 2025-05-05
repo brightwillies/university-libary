@@ -1,7 +1,8 @@
+
+import  { ReactNode } from 'react'
 import { auth } from '@/auth';
 import { redirect } from "next/navigation";   // ✅ Correct ("navigation")
 import Image from 'next/image'
-import React, { ReactNode } from 'react'
 
 const layout =async ({ children }: { children: ReactNode }) => {
   const session = await auth();

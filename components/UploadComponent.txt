@@ -1,0 +1,140 @@
+"use client";
+
+import {
+    ImageKitAbortError,
+    ImageKitInvalidRequestError,
+    ImageKitServerError,
+    ImageKitUploadNetworkError,
+    upload,
+} from "@imagekit/next";
+import { useRef, useState, useEffect } from "react";
+
+type UploadComponentProps = {
+    onFileChange?: (url: string) => void; // ✅ Add this prop
+};
+
+const UploadComponent: React.FC<UploadComponentProps> = ({ onFileChange }) => {
+    const [progress, setProgress] = useState(0);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const abortController = new AbortController();
+
+    const getAuthParams = async () => {
+        try {
+            const res = await fetch("/api/upload-auth");
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Auth failed: ${res.status} - ${errorText}`);
+            }
+            console.log(res);
+            return await res.json();
+        } catch (err) {
+            console.error("Auth error:", err);
+            throw new Error("Failed to get upload auth parameters.");
+        }
+    };
+
+    const handleFileChange = () => {
+        const fileInput = fileInputRef.current;
+        if (fileInput?.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            const url = URL.createObjectURL(file);
+            setPreviewUrl(url);
+        }
+    };
+
+    const handleUpload = async () => {
+        const fileInput = fileInputRef.current;
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            alert("Please select a file");
+            return;
+        }
+
+        const file = fileInput.files[0];
+
+        let authParams;
+        try {
+            authParams = await getAuthParams();
+        } catch (err) {
+            return;
+        }
+
+        const { token, signature, expire, publicKey } = authParams;
+
+        try {
+            const result = await upload({
+                file,
+                fileName: file.name,
+                expire,
+                token,
+                signature,
+                publicKey,
+                onProgress: (event) => {
+                    setProgress((event.loaded / event.total) * 100);
+                },
+                abortSignal: abortController.signal,
+            });
+
+            console.log("Upload success:", result);
+
+            // ✅ Call onFileChange with the uploaded file URL
+            if (onFileChange) {
+                onFileChange(result.url);
+            }
+
+            setProgress(0);
+            setPreviewUrl(null);
+        } catch (error) {
+            if (error instanceof ImageKitAbortError) {
+                console.error("Upload aborted:", error.reason);
+            } else if (error instanceof ImageKitInvalidRequestError) {
+                console.error("Invalid request:", error.message);
+            } else if (error instanceof ImageKitUploadNetworkError) {
+                console.error("Network error:", error.message);
+            } else if (error instanceof ImageKitServerError) {
+                console.error("Server error:", error.message);
+            } else {
+                console.error("Unexpected upload error:", error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
+
+    return (
+        <div className="space-y-3">
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                name="universityCard"
+            />
+            {previewUrl && (
+                <div>
+                    <img
+                        src={previewUrl}
+                        alt="Preview"
+                        className="max-w-xs rounded border"
+                    />
+                </div>
+            )}
+            <button type="button" onClick={handleUpload} className="bg-blue-600 px-4 py-2 text-white rounded">
+                Upload
+            </button>
+            {progress > 0 && (
+                <div>
+                    Upload progress: <progress value={progress} max={100}></progress>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default UploadComponent;

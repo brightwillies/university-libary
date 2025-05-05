@@ -26,7 +26,7 @@ import { FIELD_NAMES, FIELD_TYPES } from "@/constants";
 import FileUpload from "@/components/FileUpload";
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from "next/navigation";
-;
+import UploadComponent from './UploadComponent';
 interface Props<T extends FieldValues> {
   schema: ZodType<T>
   defaultValues: T;
@@ -100,25 +100,17 @@ const Authform = <T extends FieldValues>({
 
                   <FormControl>
                     {field.name === "universityCard" ? (
-                      <div>
-                        <Input
-                          required
-                          type={FIELD_TYPES[field.name as keyof typeof FIELD_TYPES]}
-                          {...field}
-                          className="form-input"
-                        />
-                        <FileUpload
-                          type="image"
-                          accept="image/*"
-                          placeholder="Upload your ID"
-                          folder="ids"
-                          variant="dark"
-                          onFileChange={field.onChange}
-                          value={field.value}
-                        />
 
-                      
-                      </div>
+                       <UploadComponent
+                        //  onFileChange={field.onChange}
+
+                         onFileChange={(url) => {
+
+                          form.setValue("universityCard" as Path<T>, url as any, { shouldValidate: true });
+   
+                        }}
+                       />
+                     
                     ) : (
                       <Input
                         required
